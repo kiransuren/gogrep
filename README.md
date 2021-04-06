@@ -1,4 +1,4 @@
-# GoGrep, a golang grep clone
+# GoGrep, a golang grep-like clone
 
 ### Architecture
 1. Start gogrep
