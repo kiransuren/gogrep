@@ -3,25 +3,29 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"regexp"
 
 	"github.com/kiransuren/gogrep/search"
 )
 
 func main() {
-	//ignoreArr := []string{".git"}
-	//ReadDirectories("./", ignoreArr)
+	ignoreArr := []string{`\w*\.git`, `\w*\.exe`}
+	ReadDirectories("./", ignoreArr, "echo")
+}
 
-	data, err := ioutil.ReadFile("search/BoyerMoore.go")
+func ReadMatchFile(pattern string, filename string) {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Println("File reading error", err)
 		return
 	}
-	fmt.Println("Contents of file:")
-	fmt.Println(data)
-
-	matches := search.BoyerMooreSearch("pattern", string(data))
-	OutputMatches(data, matches, "search/BoyerMoore.go")
+	matches, err := search.BoyerMooreSearch(pattern, string(data))
+	if err != nil {
+		log.Fatal(err)
+	}
+	OutputMatches(data, matches, filename)
 }
 
 func OutputMatches(bufferData []byte, matchData []int, bufferName string) {
@@ -44,7 +48,7 @@ func OutputMatches(bufferData []byte, matchData []int, bufferName string) {
 	}
 }
 
-func ArrayContainsString(target string, matchingArr []string) bool {
+func TargetContainsString(target string, matchingArr []string) bool {
 	for _, word := range matchingArr {
 		if target == word {
 			return true
@@ -53,7 +57,17 @@ func ArrayContainsString(target string, matchingArr []string) bool {
 	return false
 }
 
-func ReadDirectories(rootDir string, ignoreArr []string) bool {
+func TargetContainsRegex(target string, matchingArr []string) bool {
+	for _, word := range matchingArr {
+		matched, _ := regexp.MatchString(word, target)
+		if matched {
+			return true
+		}
+	}
+	return false
+}
+
+func ReadDirectories(rootDir string, ignoreArr []string, pattern string) bool {
 	files, err := os.ReadDir(rootDir)
 	if err != nil {
 		fmt.Println("")
@@ -62,7 +76,7 @@ func ReadDirectories(rootDir string, ignoreArr []string) bool {
 	for _, f := range files {
 
 		// Ignore flagged names (whether its a dir or file)
-		if ArrayContainsString(f.Name(), ignoreArr) {
+		if TargetContainsRegex(f.Name(), ignoreArr) {
 			continue
 		}
 
@@ -70,10 +84,11 @@ func ReadDirectories(rootDir string, ignoreArr []string) bool {
 
 		if f.IsDir() {
 			// Recurse readDirectories
-			ReadDirectories(rootDir+f.Name()+"/", ignoreArr)
+			ReadDirectories(rootDir+f.Name()+"/", ignoreArr, pattern)
 		} else {
 			// Read file and match with target
 			fmt.Println("Reading file: " + rootDir + f.Name())
+			ReadMatchFile(pattern, rootDir+f.Name())
 		}
 	}
 	return true

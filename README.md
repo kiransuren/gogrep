@@ -17,7 +17,13 @@
    1. Good old fashion, line by line reading and matching string
    2. Using Boyer-Moore algorithm (same one used by GNU grep)
    3. For regexes, using Go's built-in methods (since they're quite fast)
-   
+
+
+### Current Support
+- GoGrep with Boyer-Moore can only handle ASCII characters 
+
 ### Why GoGrep?
 1. I was bored
 2. Learned Go last Sunday, wanted to test my knowledge out
+
+

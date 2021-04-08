@@ -1,8 +1,10 @@
 package search
 
+import "errors"
+
 const NUM_OF_CHARS int = 256
 
-func badCharacterPreprocessing(pattern string, badCharacterArray *[NUM_OF_CHARS]int) {
+func badCharacterPreprocessing(pattern string, badCharacterArray *[NUM_OF_CHARS]int) error {
 	// Defaulting characters to have an occurrence of -1 position (they don't exist)
 	for i := 0; i < NUM_OF_CHARS; i++ {
 		(*badCharacterArray)[i] = -1
@@ -10,15 +12,22 @@ func badCharacterPreprocessing(pattern string, badCharacterArray *[NUM_OF_CHARS]
 
 	// Assigning each character the last occurrence position based on pattern string
 	for position, currRune := range pattern {
+		if int(currRune) > NUM_OF_CHARS {
+			return errors.New("ERROR: Pattern string is not ASCII Encodeable")
+		}
 		(*badCharacterArray)[int(currRune)] = position
 	}
+	return nil
 }
 
-// Currrently only implements bad character heuristic
-func BoyerMooreSearch(pattern string, buffer string) []int {
+// Boyer-Moore Search Algorithm that uses Bad Character heuristic to speedily search buffer string for pattern
+func BoyerMooreSearch(pattern string, buffer string) ([]int, error) {
 	var badCharacters [NUM_OF_CHARS]int
 	matches := make([]int, 0)
-	badCharacterPreprocessing(pattern, &badCharacters)
+	preprocessErr := badCharacterPreprocessing(pattern, &badCharacters)
+	if preprocessErr != nil {
+		return matches, preprocessErr
+	}
 	patternLen := len(pattern)
 	searchTextLen := len(buffer)
 	stride := 0
@@ -29,22 +38,37 @@ func BoyerMooreSearch(pattern string, buffer string) []int {
 			// checking if pattern character matches buffer
 			patternIndex--
 		}
+
+		if int(buffer[stride+patternIndex]) > NUM_OF_CHARS {
+			return matches, errors.New("ERROR: Buffer is not ASCII Encodeable")
+		}
+
 		if patternIndex < 0 {
-			// Match ocurred
+			// MATCH OCCURRED
 			matches = append(matches, stride)
-			stride += patternLen
-		} else {
-			// There was a mismatch
-			if badCharacters[int(buffer[stride+patternIndex])] == -1 {
-				// Current search text char does not exist in the pattern, move over the entire word
-				// until tail is past current search text char
-				stride += patternIndex + 1
+			if stride+patternLen < searchTextLen {
+				// Get next character in search, based on last occurrence
+				// move stride to match
+				stride += patternLen - badCharacters[buffer[stride+patternLen]]
 			} else {
-				// Current search text char exists in the pattern, move word over until this pattern char
-				// is right beside the current search text char
-				stride += patternLen - 1 - badCharacters[int(buffer[stride+patternIndex])]
+				// Move one at end of text
+				stride += 1
 			}
+		} else {
+			// MISMATCH OCCURRED
+			// Essentially calculating the vector the stride should move towards to align
+			// with next ocurring character in pattern. If vector is negative (i.e. stride is
+			// trying to go backwards), Max will force it to move forward 1 (this can happen
+			// if last occurance of letter has already be matched)
+			stride += Max(1, patternIndex-badCharacters[buffer[stride+patternIndex]])
 		}
 	}
-	return matches
+	return matches, nil
+}
+
+func Max(x int, y int) int {
+	if x > y {
+		return x
+	}
+	return y
 }
