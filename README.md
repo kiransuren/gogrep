@@ -20,7 +20,7 @@
 
 
 ### Current Support
-- GoGrep with Boyer-Moore can only handle ASCII characters 
+- GoGrep with Boyer-Moore can only handle ASCII characters (need to deal with "weird" files like .exe, .db, etc.)
 
 ### Why GoGrep?
 1. I was bored

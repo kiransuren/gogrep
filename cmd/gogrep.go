@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,9 +11,30 @@ import (
 	"github.com/kiransuren/gogrep/utils"
 )
 
+type Args struct {
+	pattern       string
+	rootDirectory string
+	isRecursive   bool
+}
+
 func main() {
+
+	isRecursive := flag.Bool("r", false, "Do a recursive search of directories")
+	flag.Parse() // This will parse all the arguments from the terminal
+
+	args := Args{
+		pattern:       flag.Arg(0),
+		rootDirectory: flag.Arg(1),
+		isRecursive:   *isRecursive,
+	}
+
+	if args.pattern == "" || args.rootDirectory == "" {
+		fmt.Println("Missing pattern and/or directory/file argument(s)")
+		return
+	}
+
 	ignoreArr := []string{`\w*\.git`, `\w*\.exe`}
-	ReadDirectories("./", ignoreArr, "echo")
+	RunGoGrep(args, ignoreArr, args.rootDirectory)
 }
 
 // Read file contents and search for pattern using Boyer-Moore (output any matches)
@@ -50,11 +72,11 @@ func OutputMatches(bufferData []byte, matchData []int, bufferName string) {
 	}
 }
 
-// Read directories recursively and find any matches (handle with BoyerMooreSearchFile func)
-func ReadDirectories(rootDir string, ignoreArr []string, pattern string) bool {
-	files, err := os.ReadDir(rootDir)
+// Read directories (possibly recursively) and find any matches (handle with BoyerMooreSearchFile func)
+func RunGoGrep(args Args, ignoreArr []string, directory string) bool {
+	files, err := os.ReadDir(directory)
 	if err != nil {
-		fmt.Println("")
+		fmt.Println("Error ocurred reading directory", err)
 		return false
 	}
 	for _, f := range files {
@@ -66,10 +88,13 @@ func ReadDirectories(rootDir string, ignoreArr []string, pattern string) bool {
 
 		if f.IsDir() {
 			// Recurse directories
-			ReadDirectories(rootDir+f.Name()+"/", ignoreArr, pattern)
+			if !args.isRecursive {
+				continue
+			}
+			RunGoGrep(args, ignoreArr, directory+f.Name()+"/")
 		} else {
 			// Search for pattern in file using Boyer-Moore
-			BoyerMooreSearchFile(pattern, rootDir+f.Name())
+			BoyerMooreSearchFile(args.pattern, directory+f.Name())
 		}
 	}
 	return true

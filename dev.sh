@@ -10,4 +10,4 @@ go build -o ./build/gogrep.exe ./cmd/gogrep.go
 echo -e "2/2: Running ./build/gogrep.exe \n"
 echo -e "-------------------------- \n"
 
-./build/gogrep.exe
+./build/gogrep.exe -r pattern ./
