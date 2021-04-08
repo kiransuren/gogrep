@@ -4,6 +4,7 @@ import "errors"
 
 const NUM_OF_CHARS int = 256
 
+// Preprocess pattern into ASCII character value indexable array (for use in Boyer-Moore Search)
 func badCharacterPreprocessing(pattern string, badCharacterArray *[NUM_OF_CHARS]int) error {
 	// Defaulting characters to have an occurrence of -1 position (they don't exist)
 	for i := 0; i < NUM_OF_CHARS; i++ {
@@ -66,6 +67,7 @@ func BoyerMooreSearch(pattern string, buffer string) ([]int, error) {
 	return matches, nil
 }
 
+// Return max of two integers
 func Max(x int, y int) int {
 	if x > y {
 		return x

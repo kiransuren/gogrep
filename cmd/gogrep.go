@@ -15,7 +15,8 @@ func main() {
 	ReadDirectories("./", ignoreArr, "echo")
 }
 
-func ReadMatchFile(pattern string, filename string) {
+// Read file contents and search for pattern using Boyer-Moore (output any matches)
+func BoyerMooreSearchFile(pattern string, filename string) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Println("File reading error", err)
@@ -28,6 +29,7 @@ func ReadMatchFile(pattern string, filename string) {
 	OutputMatches(data, matches, filename)
 }
 
+// Format matches by printing the line it was found in and filename
 func OutputMatches(bufferData []byte, matchData []int, bufferName string) {
 	for _, pos := range matchData {
 		// Loop through ocurrences of pattern in bufferdata
@@ -48,8 +50,9 @@ func OutputMatches(bufferData []byte, matchData []int, bufferName string) {
 	}
 }
 
-func TargetContainsString(target string, matchingArr []string) bool {
-	for _, word := range matchingArr {
+// Checks if target string matches any string in an array
+func TargetContainsString(target string, matchingArray []string) bool {
+	for _, word := range matchingArray {
 		if target == word {
 			return true
 		}
@@ -57,8 +60,9 @@ func TargetContainsString(target string, matchingArr []string) bool {
 	return false
 }
 
-func TargetContainsRegex(target string, matchingArr []string) bool {
-	for _, word := range matchingArr {
+// Checks if target string matches any regex in an array
+func TargetContainsRegex(target string, matchingArray []string) bool {
+	for _, word := range matchingArray {
 		matched, _ := regexp.MatchString(word, target)
 		if matched {
 			return true
@@ -67,6 +71,7 @@ func TargetContainsRegex(target string, matchingArr []string) bool {
 	return false
 }
 
+// Read directories recursively and find any matches (handle with BoyerMooreSearchFile func)
 func ReadDirectories(rootDir string, ignoreArr []string, pattern string) bool {
 	files, err := os.ReadDir(rootDir)
 	if err != nil {
@@ -80,15 +85,12 @@ func ReadDirectories(rootDir string, ignoreArr []string, pattern string) bool {
 			continue
 		}
 
-		fmt.Println(rootDir + f.Name())
-
 		if f.IsDir() {
-			// Recurse readDirectories
+			// Recurse directories
 			ReadDirectories(rootDir+f.Name()+"/", ignoreArr, pattern)
 		} else {
-			// Read file and match with target
-			fmt.Println("Reading file: " + rootDir + f.Name())
-			ReadMatchFile(pattern, rootDir+f.Name())
+			// Search for pattern in file using Boyer-Moore
+			BoyerMooreSearchFile(pattern, rootDir+f.Name())
 		}
 	}
 	return true
