@@ -1,6 +1,10 @@
 package search
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/kiransuren/gogrep/utils"
+)
 
 const NUM_OF_CHARS int = 256
 
@@ -61,16 +65,8 @@ func BoyerMooreSearch(pattern string, buffer string) ([]int, error) {
 			// with next ocurring character in pattern. If vector is negative (i.e. stride is
 			// trying to go backwards), Max will force it to move forward 1 (this can happen
 			// if last occurance of letter has already be matched)
-			stride += Max(1, patternIndex-badCharacters[buffer[stride+patternIndex]])
+			stride += utils.Max(1, patternIndex-badCharacters[buffer[stride+patternIndex]])
 		}
 	}
 	return matches, nil
-}
-
-// Return max of two integers
-func Max(x int, y int) int {
-	if x > y {
-		return x
-	}
-	return y
 }

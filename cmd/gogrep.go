@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"regexp"
 
 	"github.com/kiransuren/gogrep/search"
+	"github.com/kiransuren/gogrep/utils"
 )
 
 func main() {
@@ -50,27 +50,6 @@ func OutputMatches(bufferData []byte, matchData []int, bufferName string) {
 	}
 }
 
-// Checks if target string matches any string in an array
-func TargetContainsString(target string, matchingArray []string) bool {
-	for _, word := range matchingArray {
-		if target == word {
-			return true
-		}
-	}
-	return false
-}
-
-// Checks if target string matches any regex in an array
-func TargetContainsRegex(target string, matchingArray []string) bool {
-	for _, word := range matchingArray {
-		matched, _ := regexp.MatchString(word, target)
-		if matched {
-			return true
-		}
-	}
-	return false
-}
-
 // Read directories recursively and find any matches (handle with BoyerMooreSearchFile func)
 func ReadDirectories(rootDir string, ignoreArr []string, pattern string) bool {
 	files, err := os.ReadDir(rootDir)
@@ -81,7 +60,7 @@ func ReadDirectories(rootDir string, ignoreArr []string, pattern string) bool {
 	for _, f := range files {
 
 		// Ignore flagged names (whether its a dir or file)
-		if TargetContainsRegex(f.Name(), ignoreArr) {
+		if utils.TargetContainsRegex(f.Name(), ignoreArr) {
 			continue
 		}
 
