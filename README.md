@@ -17,8 +17,7 @@
   - ```-r``` : read all files under each directory recursively
 
 ### Pipeline/Architecture
-1. Start gogrep
-    Pass in parameters:
+1. Start gogrep, pass in parameters:
       1. target string/regex
       2. root directory (implicit or explicit)
       3. ignores
