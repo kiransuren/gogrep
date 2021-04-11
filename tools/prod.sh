@@ -1,7 +1,10 @@
 # Production development script
-# Build project to ./build/gogrep.exe
-echo -e "--------------------------"
-echo "Building project to ./build/gogrep.exe"
-echo -e "-------------------------- \n"
 
-go build -o ./build/gogrep.exe ./cmd/gogrep.go
+BUILD_PATH="./build/gogrep.exe"
+MAIN_PATH="./cmd/gogrep.go"
+
+# Build project to BUILD_PATH
+echo -e "-------------------------- "
+echo "Building project to $BUILD_PATH"
+echo -e "-------------------------- \n"
+go build -o $BUILD_PATH $MAIN_PATH
