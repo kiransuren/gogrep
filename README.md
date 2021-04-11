@@ -19,9 +19,9 @@
 ### Pipeline/Architecture
 1. Start gogrep
     Pass in parameters:
-      a. target string/regex
-      b. root directory (implicit or explicit)
-      c. ignores
+      1. target string/regex
+      2. root directory (implicit or explicit)
+      3. ignores
 2. Recursively read contents of root directory
    1. If item is a directory:
       1. Append name to current root 
