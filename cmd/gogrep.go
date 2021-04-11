@@ -19,8 +19,11 @@ type Args struct {
 
 func main() {
 
+	// Array of regexes to ignore while searching
+	ignoreArr := []string{`\w*\.git`, `\w*\.exe`}
+
 	isRecursive := flag.Bool("r", false, "Do a recursive search of directories")
-	flag.Parse() // This will parse all the arguments from the terminal
+	flag.Parse()
 
 	args := Args{
 		pattern:       flag.Arg(0),
@@ -33,7 +36,6 @@ func main() {
 		return
 	}
 
-	ignoreArr := []string{`\w*\.git`, `\w*\.exe`}
 	RunGoGrep(args, ignoreArr, args.rootDirectory)
 }
 

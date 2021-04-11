@@ -1,5 +1,21 @@
 # GoGrep, a golang grep-like clone
 
+### Building GoGrep
+- Dev:
+  Run ```sh dev.sh```
+  1. Builds project to exe (on Windows) in build folder 
+  2. Runs executable with some test arguments
+- Prod:
+  Run ```sh prod.sh```
+  1. Builds project to exe (on Windows) in build folder
+
+
+### Running GoGrep
+- Add Environment Variable to gogrep build folder (or move exe/binary to appropriate folder)
+- ```gogrep [OPTIONS] PATTERN [FILE/DIRECTORY]```
+- Options
+  - ```-r``` : read all files under each directory recursively
+
 ### Pipeline/Architecture
 1. Start gogrep
     Pass in parameters:
@@ -21,6 +37,7 @@
 
 ### Current Support
 - GoGrep with Boyer-Moore can only handle ASCII characters (need to deal with "weird" files like .exe, .db, etc.)
+- Only looks for string patterns (no regex yet)
 
 ### Why GoGrep?
 1. I was bored
