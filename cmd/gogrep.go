@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/kiransuren/gogrep/search"
 	"github.com/kiransuren/gogrep/utils"
@@ -18,6 +19,8 @@ type Args struct {
 }
 
 func main() {
+
+	var wg sync.WaitGroup
 
 	// Array of regexes to ignore while searching
 	ignoreArr := []string{`\w*\.git`, `\w*\.exe`}
@@ -36,11 +39,14 @@ func main() {
 		return
 	}
 
-	RunGoGrep(args, ignoreArr, args.rootDirectory)
+	RunGoGrep(args, ignoreArr, args.rootDirectory, &wg)
+
+	// Wait for go routines to complete
+	wg.Wait()
 }
 
 // Read file contents and search for pattern using Boyer-Moore (output any matches)
-func BoyerMooreSearchFile(pattern string, filename string) {
+func BoyerMooreSearchFile(pattern string, filename string, wg_ptr *sync.WaitGroup) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Println("File reading error", err)
@@ -48,13 +54,22 @@ func BoyerMooreSearchFile(pattern string, filename string) {
 	}
 	matches, err := search.BoyerMooreSearch(pattern, string(data))
 	if err != nil {
+		wg_ptr.Done()
 		log.Fatal(err)
 	}
 	OutputMatches(data, matches, filename)
+	wg_ptr.Done()
 }
 
-// Format matches by printing the line it was found in and filename
+// Format matching results in a single file by printing the lines they were found in and filename
 func OutputMatches(bufferData []byte, matchData []int, bufferName string) {
+	outputString := ""
+
+	// If no matches were found, ignore output routine
+	if len(matchData) == 0 {
+		return
+	}
+
 	for _, pos := range matchData {
 		// Loop through ocurrences of pattern in bufferdata
 		start, end := pos, pos
@@ -66,16 +81,17 @@ func OutputMatches(bufferData []byte, matchData []int, bufferName string) {
 		for end < len(string(bufferData)) && (bufferData[end] != 13 && bufferData[end] != 10) {
 			end++
 		}
-		fmt.Printf(bufferName + ":")
+		outputString += bufferName + ":"
 		for x := start + 1; x < end; x++ {
-			fmt.Print(string((string(bufferData))[x]))
+			outputString += string((string(bufferData))[x])
 		}
-		fmt.Print("\n")
+		outputString += "\n"
 	}
+	fmt.Print(outputString + "\n")
 }
 
 // Read directories (possibly recursively) and find any matches (handle with BoyerMooreSearchFile func)
-func RunGoGrep(args Args, ignoreArr []string, directory string) bool {
+func RunGoGrep(args Args, ignoreArr []string, directory string, wg_ptr *sync.WaitGroup) bool {
 	files, err := os.ReadDir(directory)
 	if err != nil {
 		fmt.Println("Error ocurred reading directory", err)
@@ -93,10 +109,11 @@ func RunGoGrep(args Args, ignoreArr []string, directory string) bool {
 			if !args.isRecursive {
 				continue
 			}
-			RunGoGrep(args, ignoreArr, directory+f.Name()+"/")
+			RunGoGrep(args, ignoreArr, directory+f.Name()+"/", wg_ptr)
 		} else {
 			// Search for pattern in file using Boyer-Moore
-			BoyerMooreSearchFile(args.pattern, directory+f.Name())
+			(*wg_ptr).Add(1)
+			go BoyerMooreSearchFile(args.pattern, directory+f.Name(), wg_ptr)
 		}
 	}
 	return true
